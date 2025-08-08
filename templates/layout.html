@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TrafficFlow - Intelligent Traffic Management</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- LeafletJS CSS for Interactive Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
+    <style>
+        body { font-family: 'Poppins', sans-serif; scroll-behavior: smooth; }
+        .stat-card { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); }
+        /* Set a default height for the map container */
+        #map { height: 600px; }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <!-- Navbar -->
+    <nav class="bg-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="{{ url_for('home') }}" class="text-2xl font-bold text-gray-800">TrafficFlow</a>
+            <div>
+                {% if session.user_id %}
+                    <a href="{{ url_for('dashboard') }}" class="px-4 py-2 text-gray-700 hover:text-blue-600">Dashboard</a>
+                    <a href="{{ url_for('logout') }}" class="ml-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Logout</a>
+                {% else %}
+                    <a href="#tech" class="px-4 py-2 text-gray-700 hover:text-blue-600">Technology</a>
+                    <a href="#contact" class="px-4 py-2 text-gray-700 hover:text-blue-600">Contact</a>
+                    <a href="{{ url_for('login') }}" class="px-4 py-2 text-gray-700 hover:text-blue-600">Login</a>
+                    <a href="{{ url_for('signup') }}" class="ml-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Get Access</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container mx-auto py-8 px-6">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="p-4 mb-6 text-sm rounded-lg
+                        {% if category == 'success' %} bg-green-100 text-green-800
+                        {% elif category == 'danger' %} bg-red-100 text-red-800
+                        {% else %} bg-yellow-100 text-yellow-800 {% endif %}" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block body %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white">
+        <div class="container mx-auto px-6 py-8 text-center">
+            <p>&copy; 2025 TrafficFlow. All Rights Reserved by Nahamu.</p>
+        </div>
+    </footer>
+
+    <!-- LeafletJS for Interactive Map -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    
+    <!-- Custom JS block for pages that need it -->
+    {% block scripts %}{% endblock %}
+
+</body>
+</html>

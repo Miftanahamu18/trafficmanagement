@@ -1,0 +1,186 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+    <div>
+        <h1 class="text-4xl font-bold">Live Traffic Dashboard</h1>
+        <p class="text-gray-600">Real-time traffic overview for Dhaka</p>
+    </div>
+    <div class="text-right mt-4 md:mt-0">
+        <p id="live-time" class="text-2xl font-semibold"></p>
+        <p id="live-date" class="text-gray-500"></p>
+    </div>
+</div>
+
+
+<!-- Key Statistics Panel -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+    <div class="bg-white p-4 rounded-lg shadow-md text-center">
+        <p class="text-gray-500 text-sm">Avg. Speed</p>
+        <p class="text-2xl font-bold">45 km/h</p>
+    </div>
+    <div class="bg-white p-4 rounded-lg shadow-md text-center">
+        <p class="text-gray-500 text-sm">Active Incidents</p>
+        <p class="text-2xl font-bold text-red-500">3</p>
+    </div>
+    <div class="bg-white p-4 rounded-lg shadow-md text-center">
+        <p class="text-gray-500 text-sm">Weather</p>
+        <p class="text-2xl font-bold">Clear</p>
+    </div>
+    <div class="bg-white p-4 rounded-lg shadow-md text-center">
+        <p class="text-gray-500 text-sm">System Status</p>
+        <p class="text-2xl font-bold text-green-500">Online</p>
+    </div>
+</div>
+
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Main Map Display -->
+    <div class="lg:col-span-2 bg-white p-4 rounded-lg shadow-md">
+        <div id="map" class="rounded-lg z-0"></div>
+    </div>
+
+    <!-- Side Panel -->
+    <div class="lg:col-span-1 bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-2xl font-bold mb-4">Controls & Info</h2>
+        
+        <!-- Layer Toggles -->
+        <div class="mb-6">
+            <h3 class="text-xl font-semibold mb-3">Map Layers</h3>
+            <div class="space-y-2">
+                <label class="flex items-center">
+                    <input type="checkbox" id="toggle-traffic" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" checked>
+                    <span class="ml-2 text-gray-700">Show Traffic Flow</span>
+                </label>
+                <label class="flex items-center">
+                    <input type="checkbox" id="toggle-incidents" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" checked>
+                    <span class="ml-2 text-gray-700">Show Incidents</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Route Finder -->
+        <div>
+            <h3 class="text-xl font-semibold mb-3">Find Fastest Route</h3>
+            <div class="space-y-3">
+                <input type="text" placeholder="Start Location (e.g., Gulshan)" class="w-full p-2 border rounded-md">
+                <input type="text" placeholder="End Location (e.g., Dhanmondi)" class="w-full p-2 border rounded-md">
+                <button class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700">Search Route</button>
+            </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="mt-8">
+            <h3 class="text-xl font-semibold mb-3">Traffic Legend</h3>
+            <ul class="space-y-2">
+                <li class="flex items-center"><span class="h-4 w-4 rounded-full bg-red-500 mr-3"></span> Heavy Congestion</li>
+                <li class="flex items-center"><span class="h-4 w-4 rounded-full bg-yellow-400 mr-3"></span> Moderate Traffic</li>
+                <li class="flex items-center"><span class="h-4 w-4 rounded-full bg-green-500 mr-3"></span> Light Traffic</li>
+            </ul>
+        </div>
+
+        <!-- Incident Report Button -->
+        <div class="mt-8">
+             <h3 class="text-xl font-semibold mb-3">See an Issue?</h3>
+             <button class="w-full bg-red-500 text-white py-2 rounded-md hover:bg-red-600">Report an Incident</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Initialize the map and set its view to Dhaka
+    const map = L.map('map').setView([23.8103, 90.4125], 12);
+
+    // Add a dark tile layer to the map for a more "tech" feel
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 20
+    }).addTo(map);
+
+    // --- SIMULATED DATA ---
+    // In a real application, this data would come from your backend/API
+    // Data reflects early morning traffic (5:28 AM) - mostly light.
+
+    const trafficData = [
+        // Main roads with light traffic
+        { coords: [[23.815, 90.41], [23.800, 90.415]], color: 'green', weight: 5 }, 
+        { coords: [[23.79, 90.40], [23.795, 90.42]], color: 'green', weight: 5 },
+        { coords: [[23.83, 90.42], [23.81, 90.43]], color: 'green', weight: 5 },
+        { coords: [[23.75, 90.38], [23.78, 90.39]], color: 'green', weight: 5 },
+        // A few moderate spots, maybe near industrial areas or bus depots
+        { coords: [[23.775, 90.425], [23.76, 90.43]], color: 'orange', weight: 5 },
+    ];
+
+    const incidents = [
+        { coords: [23.805, 90.412], title: 'Overnight Roadwork', description: 'Roadwork on Gulshan Ave expected to finish by 6 AM.' },
+        { coords: [23.792, 90.405], title: 'Broken Down Vehicle', description: 'A truck has broken down on the Banani flyover.' },
+        { coords: [23.74, 90.39], title: 'Water Logging', description: 'Minor water logging near Dhanmondi Lake after overnight rain.'}
+    ];
+
+    // Create layer groups to manage visibility
+    const trafficLayer = L.layerGroup();
+    const incidentLayer = L.layerGroup();
+
+    trafficData.forEach(traffic => {
+        L.polyline(traffic.coords, { color: traffic.color, weight: traffic.weight, opacity: 0.8 }).addTo(trafficLayer);
+    });
+
+    // Custom icon for incidents
+    const incidentIcon = L.icon({
+        iconUrl: 'https://placehold.co/30x30/f87171/ffffff?text=!',
+        iconSize: [30, 30],
+        iconAnchor: [15, 15],
+        popupAnchor: [0, -15]
+    });
+
+    incidents.forEach(incident => {
+        const marker = L.marker(incident.coords, { icon: incidentIcon }).addTo(incidentLayer);
+        marker.bindPopup(`<div class="p-1"><b class="text-lg text-red-600">${incident.title}</b><br>${incident.description}</div>`);
+    });
+
+    // Add layers to the map by default
+    trafficLayer.addTo(map);
+    incidentLayer.addTo(map);
+
+    // --- EVENT LISTENERS FOR CONTROLS ---
+
+    document.getElementById('toggle-traffic').addEventListener('change', function(e) {
+        if (e.target.checked) {
+            map.addLayer(trafficLayer);
+        } else {
+            map.removeLayer(trafficLayer);
+        }
+    });
+
+    document.getElementById('toggle-incidents').addEventListener('change', function(e) {
+        if (e.target.checked) {
+            map.addLayer(incidentLayer);
+        } else {
+            map.removeLayer(incidentLayer);
+        }
+    });
+
+    // --- LIVE CLOCK ---
+    function updateTime() {
+        const timeEl = document.getElementById('live-time');
+        const dateEl = document.getElementById('live-date');
+        const now = new Date();
+        
+        // As per instruction, setting time to a fixed value
+        now.setHours(5, 28, 0); 
+        
+        const timeString = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+        const dateString = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        
+        timeEl.textContent = timeString;
+        dateEl.textContent = dateString;
+    }
+
+    updateTime(); // Initial call
+    // In a real scenario, you'd use setInterval(updateTime, 1000);
+
+</script>
+{% endblock %}
